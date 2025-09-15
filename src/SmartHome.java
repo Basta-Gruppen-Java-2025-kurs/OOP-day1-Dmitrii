@@ -1,13 +1,13 @@
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public final class SmartHome {
 
     private ArrayList<Room> rooms = new ArrayList();
     private ArrayList<SmartDeviceModel> models = new ArrayList();
+    private ArrayList<State> states = new ArrayList();
 
-    private static final String[] MENU_OPTIONS = { "Exit", "Add room", "Remove Room", "New device model", "List device models", "List all devices in the house", "Switch state", "Add state", "Remove state" };
+    private static final String[] MENU_OPTIONS = { "Exit", "Add room", "Remove Room", "Room Menu", "New device model", "List device models", "List all devices in the house", "Switch state", "Add state", "Remove state" };
     private static SmartHome instance = null;
     private SmartHome() {
     }
@@ -30,18 +30,20 @@ public final class SmartHome {
             switch(choice) {
                 case 1 -> addRoomMenu();
                 case 2 -> removeRoomMenu();
-                case 3 -> newDeviceModelMenu();
-                case 4 -> listAllDeviceModels();
-                case 5 -> listAllDevices();
-                case 6 -> switchStateMenu();
-                case 7 -> addStateMenu();
-                case 8 -> removeStateMenu();
+                case 3 -> roomMenu();
+                case 4 -> newDeviceModelMenu();
+                case 5 -> listAllDeviceModels();
+                case 6 -> listAllDevices();
+                case 7 -> switchStateMenu();
+                case 8 -> addStateMenu();
+                case 9 -> removeStateMenu();
             }
         } while(choice > 0);
         System.out.println("Good bye.");
     }
 
     private void removeStateMenu() {
+
         //select state to remove or exit
     }
 
@@ -103,18 +105,35 @@ public final class SmartHome {
     }
 
     void listAllDeviceModels() {
-
+        for (SmartDeviceModel model : models) {
+            System.out.println("* " + model.name);
+            if (model.elements.size() > 0) {
+                System.out.println("  Elements:");
+                for(SmartElement el : model.elements) {
+                    System.out.println("  - " + el.name);
+                }
+            }
+        }
     }
 
     boolean addState(String stateName) {
-        return false;
+        //TODO: check that this state doesn't exist yet
+        State state = new State(stateName);
+        state.save();
+        states.add(state);
+        return true;
     }
 
-    boolean switchState(String stateName) {
-        return false;
+    boolean switchState(State state) {
+        state.apply();
+        return true;
     }
 
-    boolean removeState(String stateName) {
+    boolean removeState(State state) {
+        if (states.contains(state)) {
+            states.remove(state);
+            return true;
+        }
         return false;
     }
 
