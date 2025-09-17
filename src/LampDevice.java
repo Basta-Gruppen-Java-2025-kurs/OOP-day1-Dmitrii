@@ -1,0 +1,21 @@
+public class LampDevice extends SmartDevice {
+    public final static String deviceKind = "Lamp";
+    public LampDevice(SmartDeviceModel model) {
+        super(model);
+    }
+
+    @Override
+    public void menu() {
+
+    }
+
+    @Override
+    public String getState() {
+        return "";
+    }
+
+    @Override
+    public void applyState(String state) {
+
+    }
+}

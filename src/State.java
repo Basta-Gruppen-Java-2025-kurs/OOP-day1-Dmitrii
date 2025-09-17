@@ -1,5 +1,7 @@
-import java.lang.reflect.Array;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class State {
     String name = "";
@@ -8,13 +10,23 @@ public class State {
     }
     ArrayList<DeviceState> deviceStates = new ArrayList();
 
-    void apply() {
+    public static State deserialize(String name, Scanner scanner) {
+        //TODO add actual state reading
+        scanner.nextLine();
+        return new State(name);
+    }
+
+    public void serialize(PrintWriter f) {
+        f.println("State: (" + this.name + ") " + "not implemented yet");
+    }
+
+    public void apply() {
         for (DeviceState ds : deviceStates) {
             ds.device.applyState(ds.state);
         }
     }
 
-    void save() {
+    public void save() {
         for (Room room : SmartHome.getInstance().getRooms()) {
             for (SmartDevice device : room.getDevices()) {
                 addDeviceState(device);

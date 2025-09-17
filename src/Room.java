@@ -1,19 +1,14 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Room {
-    private String name;
-    private ArrayList<SmartDevice> devices = new ArrayList();
-    private final String[] MENU_OPTIONS = {"Exit", "List devices", "Add device", "Remove device", "Move device", "Device settings"};
+    private final String name;
+    private final ArrayList<SmartDevice> devices = new ArrayList<>();
+    private final String[] MENU_OPTIONS = {"Back", "List devices", "Add device", "Remove device", "Move device", "Device settings"};
 
     public void menu() {
-        int choice = MenuHelper.menu("Room '" + name + "'. Choose action by number:",MENU_OPTIONS);
-        switch(choice) {
-            case 1 -> listDevices();
-            case 2 -> addDeviceMenu();
-            case 3 -> removeDeviceMenu();
-            case 4 -> moveDeviceMenu();
-            case 5 -> deviceSettingsMenu();
-        }
+        new MenuHelper().menuLoop("Room '" + name + "'. Choose action by number:", MENU_OPTIONS,
+                new Runnable[] {this::listDevices, this::addDeviceMenu, this::removeDeviceMenu, this::moveDeviceMenu, this::deviceSettingsMenu});
     }
 
     private void deviceSettingsMenu() {
@@ -23,10 +18,41 @@ public class Room {
     }
 
     private void removeDeviceMenu() {
+        //
     }
 
     private void addDeviceMenu() {
+        ArrayList<SmartDeviceModel> modelList = SmartHome.getInstance().getDeviceModels();
+        if (modelList.isEmpty()) {
+            System.out.println("No device models available.");
+            return;
+        }
+        String [] addMenuContent = new String[modelList.size() + 1];
+        addMenuContent[0] = "Cancel";
+        for (int i = 0; i < modelList.size(); i++) {
+            addMenuContent[i + 1] = modelList.get(i).name;
+        }
 
+        // select device model
+        int choice = new MenuHelper().menu("Select device model: ", addMenuContent);
+        if (choice == 0) {
+            return;
+        }
+        // name the device
+        SafeInput si = new SafeInput(new Scanner(System.in));
+        while(true) {
+            String deviceName = si.nextLine("Please name the device (empty to cancel): ");
+            if (devices.stream().anyMatch(d -> d.getId().equals(deviceName))) {
+                System.out.println("Device with this name already exists. Try again.");
+            } else {
+                SmartDevice newDevice = SmartDevice.createNewDevice(deviceName, modelList.get(choice - 1));
+                if (newDevice != null) {
+                    newDevice.placeInARoom(this);
+                    System.out.println("New device placed.");
+                }
+                return;
+            }
+        }
     }
 
     public void listDevices() {
@@ -37,7 +63,7 @@ public class Room {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     Room(String name) {
@@ -49,7 +75,11 @@ public class Room {
     }
 
     public boolean addDevice(SmartDevice device) {
-        return false;
+        if (devices.contains(device)) {
+            System.out.println("This device already exists in this room.");
+            return false;
+        }
+        return devices.add(device);
     }
 
     public boolean removeDevice(SmartDevice device) {

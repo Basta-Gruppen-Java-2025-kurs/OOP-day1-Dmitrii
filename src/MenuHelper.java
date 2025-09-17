@@ -13,4 +13,14 @@ public class MenuHelper {
         SafeInput si = new SafeInput(new Scanner(System.in));
         return si.nextInt(menuText.toString(), "No such option in the menu", 0, options.length-1);
     }
+
+    public static void menuLoop(String header, String[] options, Runnable[] choiceCallbacks) {
+        int choice = -1;
+        do {
+            choice = menu(header, options);
+            if (choice > 0) {
+                choiceCallbacks[choice-1].run();
+            }
+        } while(choice > 0);
+    }
 }

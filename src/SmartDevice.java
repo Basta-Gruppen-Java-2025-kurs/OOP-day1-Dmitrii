@@ -24,11 +24,24 @@ public abstract class SmartDevice {
         this.model = model;
     };
 
-    public String getState() {
-        return "Not implemented yet";
-    }
+    public abstract void menu();
 
-    public void applyState(String state) {
-        // TODO: apply state
+    public abstract String getState();
+
+    public abstract void applyState(String state);
+
+    public static SmartDevice createNewDevice(String deviceName, SmartDeviceModel model) {
+        SmartDevice newDevice;
+        switch(model.kind) {
+            case CameraDevice.deviceKind -> newDevice = new CameraDevice(model);
+            case LampDevice.deviceKind -> newDevice = new LampDevice(model);
+            default -> newDevice = null;
+        }
+        if (newDevice == null) {
+            System.out.println("Failed to create device. Check that device model is correct");
+        } else {
+            newDevice.setId(deviceName);
+        }
+        return newDevice;
     }
 }

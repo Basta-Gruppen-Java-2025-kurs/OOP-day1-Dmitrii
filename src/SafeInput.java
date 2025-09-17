@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class SafeInput {
@@ -54,5 +55,25 @@ public class SafeInput {
 
     public long nextLong(String prompt) {
         return (long) getValue(prompt, () -> scanner.nextLong());
+    }
+
+    public String nextLine(String prompt) {
+        System.out.println(prompt);
+        return scanner.nextLine();
+    }
+
+    public String nameInputLoop(String prompt, String success, String failure, Predicate<String> actionCallback) {
+        while(true) {
+            String inputLine = nextLine(prompt);
+            if (inputLine.isEmpty()) {
+                return inputLine;
+            }
+            if(actionCallback.test(inputLine)) {
+                System.out.println(success);
+                return inputLine;
+            } else {
+                System.out.println(failure);
+            }
+        }
     }
 }
