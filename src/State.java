@@ -1,14 +1,17 @@
-import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class State {
-    String name = "";
+public class State implements Named {
+    String name;
     State(String name) {
         this.name = name;
     }
-    ArrayList<DeviceState> deviceStates = new ArrayList();
+    ArrayList<DeviceState> deviceStates = new ArrayList<>();
+
+    public String getName() {
+        return name;
+    }
 
     public static State deserialize(String name, Scanner scanner) {
         //TODO add actual state reading
@@ -42,7 +45,7 @@ public class State {
         deviceStates.add(ds);
     }
 
-    class DeviceState {
+    static class DeviceState {
         SmartDevice device;
         String state;
     }

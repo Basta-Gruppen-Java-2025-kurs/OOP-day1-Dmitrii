@@ -1,13 +1,13 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Room {
+public class Room implements Named {
     private final String name;
     private final ArrayList<SmartDevice> devices = new ArrayList<>();
     private final String[] MENU_OPTIONS = {"Back", "List devices", "Add device", "Remove device", "Move device", "Device settings"};
 
     public void menu() {
-        new MenuHelper().menuLoop("Room '" + name + "'. Choose action by number:", MENU_OPTIONS,
+        MenuHelper.menuLoop("Room '" + name + "'. Choose action by number:", MENU_OPTIONS,
                 new Runnable[] {this::listDevices, this::addDeviceMenu, this::removeDeviceMenu, this::moveDeviceMenu, this::deviceSettingsMenu});
     }
 
@@ -34,7 +34,7 @@ public class Room {
         }
 
         // select device model
-        int choice = new MenuHelper().menu("Select device model: ", addMenuContent);
+        int choice = MenuHelper.menu("Select device model: ", addMenuContent);
         if (choice == 0) {
             return;
         }

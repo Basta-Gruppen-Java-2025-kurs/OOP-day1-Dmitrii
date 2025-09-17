@@ -1,15 +1,20 @@
-public abstract class SmartDevice {
-    private SmartDeviceModel model;
+public abstract class SmartDevice implements Named {
+    private final SmartDeviceModel model;
     private String id;
     private Room room = null;
     public String getId() {
         return id;
-    };
+    }
     public void setId(String id) {
         this.id = id;
     }
     public SmartDeviceModel getModel() {
         return model;
+    }
+
+    @Override
+    public String getName() {
+        return id;
     }
 
     public void placeInARoom(Room room) {
@@ -22,7 +27,7 @@ public abstract class SmartDevice {
 
     public SmartDevice(SmartDeviceModel model) {
         this.model = model;
-    };
+    }
 
     public abstract void menu();
 

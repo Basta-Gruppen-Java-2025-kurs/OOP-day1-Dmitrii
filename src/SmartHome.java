@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public final class SmartHome {
+    //region Header
     private final String SAVE_FILENAME = "SavedState.txt";
 
     private final ArrayList<Room> rooms = new ArrayList<>();
@@ -18,9 +18,11 @@ public final class SmartHome {
     private static SmartHome instance = null;
     private SmartHome() {
     }
+    //endregion
 
+    //region Serialization/Deserialization
     public void saveToFile() {
-        PrintWriter saveFile = null;
+        PrintWriter saveFile;
         try {
             File f = new File(SAVE_FILENAME);
             if (!f.exists() && !f.createNewFile()) {
@@ -57,17 +59,6 @@ public final class SmartHome {
         }
     }
 
-    String readBetweenBraces(Scanner sc) {
-        Pattern delim = sc.delimiter();
-        sc.useDelimiter("\\(");
-        sc.next();
-        sc.useDelimiter("[\\(\\)]");
-        String result = sc.next();
-        sc.useDelimiter(delim);
-        sc.next("\\)");
-        return result;
-    }
-
     private void loadFromFile() throws FileNotFoundException {
         System.out.println("Reading saved home from " + SAVE_FILENAME);
         Scanner fileReader = new Scanner(new File(SAVE_FILENAME));
@@ -85,7 +76,7 @@ public final class SmartHome {
                         System.out.println("Room '" + currentRoom.getName() + "' added.");
                     }
                     case "model:" -> {
-                        String modelKind = readBetweenBraces(fileReader);
+                        String modelKind = SafeInput.readBetweenBraces(fileReader);
                         String modelName = fileReader.nextLine().trim();
                         SmartDeviceModel newModel = new SmartDeviceModel();
                         newModel.name = modelName;
@@ -97,7 +88,7 @@ public final class SmartHome {
                         if (currentRoom == null) {
                             throw new RuntimeException("Device defined outside of a room");
                         }
-                        String deviceModel = readBetweenBraces(fileReader);
+                        String deviceModel = SafeInput.readBetweenBraces(fileReader);
                         Optional<SmartDeviceModel> model = models.stream().filter(m -> m.name.equals(deviceModel)).findFirst();
                         if (model.isEmpty()) {
                             throw new RuntimeException("Device model not defined");
@@ -108,7 +99,7 @@ public final class SmartHome {
                         System.out.println("Device '" + deviceName + "' added to the room.");
                     }
                     case "state:" -> {
-                        String stateName = readBetweenBraces(fileReader);
+                        String stateName = SafeInput.readBetweenBraces(fileReader);
                         State newState = State.deserialize(stateName, fileReader);
                         if(stateName.toLowerCase(Locale.ROOT).equals("current")) {
                             newState.apply();
@@ -143,13 +134,16 @@ public final class SmartHome {
             saveToFile();
         }
     }
+    //endregion
 
+    //region Main Menu
     public void menu() {
         MenuHelper.menuLoop("Choose an action:", MENU_OPTIONS, new Runnable[] {
             this::addRoomMenu, this::removeRoomMenu, this::roomMenu, this::newDeviceModelMenu, this::listAllDeviceModels,
             this::listAllDevices, this::switchStateMenu, this::addStateMenu, this::removeStateMenu, this::saveToFile
         });
     }
+    //endregion
 
     private void removeStateMenu() {
         if (states.isEmpty()) {
@@ -172,6 +166,7 @@ public final class SmartHome {
         MenuHelper.menuLoop("Select state to remove:", menuOptions, actions);
     }
 
+    //region Getters and Setters
     public ArrayList<SmartDeviceModel> getDeviceModels() {
         return models;
     }
@@ -179,6 +174,15 @@ public final class SmartHome {
     Room[] getRooms() {
         return rooms.toArray(Room[]::new);
     }
+
+    public static SmartHome getInstance() {
+        if (instance == null) {
+            instance = new SmartHome();
+        }
+        return instance;
+    }
+
+    //endregion
 
     private void addStateMenu() {
         // input new state name
@@ -212,14 +216,7 @@ public final class SmartHome {
 
     private void addRoomMenu() {
         SafeInput si = new SafeInput(new Scanner(System.in));
-        si.nameInputLoop("Give a name for the new room (empty to cancel):", "Room added.", "Failed to add room.", roomName -> addRoom(roomName));
-    }
-
-    public static SmartHome getInstance() {
-        if (instance == null) {
-            instance = new SmartHome();
-        }
-        return instance;
+        si.nameInputLoop("Give a name for the new room (empty to cancel):", "Room added.", "Failed to add room.", this::addRoom);
     }
 
     boolean addRoom(String roomName) {
@@ -290,7 +287,7 @@ public final class SmartHome {
         for (int i=0; i < rooms.size(); i++) {
             roomList[i+1] = rooms.get(i).getName();
         }
-        int choice = new MenuHelper().menu("Select room", roomList);
+        int choice = MenuHelper.menu("Select room", roomList);
         if (choice > 0) {
             rooms.get(choice-1).menu();
         }

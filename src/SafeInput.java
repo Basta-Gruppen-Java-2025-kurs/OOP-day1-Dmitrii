@@ -1,12 +1,24 @@
 import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class SafeInput {
     Scanner scanner;
 
     public  SafeInput(Scanner sc) {
         scanner = sc;
+    }
+
+    public static String readBetweenBraces(Scanner sc) {
+        Pattern delim = sc.delimiter();
+        sc.useDelimiter("\\(");
+        sc.next();
+        sc.useDelimiter("[()]");
+        String result = sc.next();
+        sc.useDelimiter(delim);
+        sc.next("\\)");
+        return result;
     }
 
     public Scanner getScanner() {
@@ -42,7 +54,7 @@ public class SafeInput {
     }
 
     public int nextInt(String prompt, String tryAgain, int min, int max) {
-        return (int) getValueWithLimits(prompt, () -> scanner.nextInt(), tryAgain, min, max);
+        return (int) this.getValueWithLimits(prompt, () -> scanner.nextInt(), tryAgain, min, max);
     }
 
     public double nextDouble(String prompt) {
