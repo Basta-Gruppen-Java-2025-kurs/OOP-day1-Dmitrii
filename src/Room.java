@@ -12,6 +12,11 @@ public class Room implements Named {
     }
 
     private void deviceSettingsMenu() {
+        if (devices.isEmpty()) {
+            System.out.println("No devices in this room");
+            return;
+        }
+        MenuHelper.listMenuLoop("Select device by number:", "Back", "", devices, SmartDevice::menu);
     }
 
     private void moveDeviceMenu() {
@@ -74,18 +79,13 @@ public class Room implements Named {
         return devices;
     }
 
-    public boolean addDevice(SmartDevice device) {
-        if (devices.contains(device)) {
-            System.out.println("This device already exists in this room.");
-            return false;
-        }
-        return devices.add(device);
+    public void addDevice(SmartDevice device) {
+        System.out.println(!devices.contains(device)&&devices.add(device) ? "Device added." : "This device already exists in this room.");
     }
 
     public boolean removeDevice(SmartDevice device) {
         if (devices.contains(device)) {
-            devices.remove(device);
-            return true;
+            return devices.remove(device);
         }
         return false;
     }

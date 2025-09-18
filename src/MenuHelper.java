@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
@@ -24,7 +24,11 @@ public class MenuHelper {
         } while(choice > 0);
     }
 
-    public static <T extends Named> void arrayListMenuLoop(String header, String exit, ArrayList<T> list, Consumer<T> choiceCallback) {
+    public static <T extends Named> void listMenuLoop(String header, String exit, String emptyListMessage, List<T> list, Consumer<T> choiceCallback) {
+        if (list.isEmpty()) {
+            System.out.println(emptyListMessage);
+            return;
+        }
         String[] options = new String[list.size() + 1];
         options[0] = exit;
         Runnable[] callbacks = new Runnable[list.size()];

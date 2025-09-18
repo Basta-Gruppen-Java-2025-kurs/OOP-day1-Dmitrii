@@ -1,10 +1,8 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class SmartHome {
     //region Header
@@ -78,9 +76,12 @@ public final class SmartHome {
                     case "model:" -> {
                         String modelKind = SafeInput.readBetweenBraces(fileReader);
                         String modelName = fileReader.nextLine().trim();
-                        SmartDeviceModel newModel = new SmartDeviceModel();
-                        newModel.name = modelName;
-                        newModel.kind = modelKind;
+                        DeviceKind theKind = DeviceKind.getDeviceKind(modelKind);
+                        if (theKind == null) {
+                            System.out.println("Unknown device kind '" + modelKind + "'.");
+                            break;
+                        }
+                        SmartDeviceModel newModel = new SmartDeviceModel(modelName, theKind);
                         addDeviceModel(newModel);
                         System.out.println("Device model '" + modelName + "' added.");
                     }
@@ -125,12 +126,8 @@ public final class SmartHome {
         } else {
             addRoom("Room 1");
             addRoom("Room 2");
-            SmartDeviceModel camera = new SmartDeviceModel();
-            camera.name = "Camera";
-            addDeviceModel(camera);
-            SmartDeviceModel thermo = new SmartDeviceModel();
-            thermo.name = "Lamp";
-            addDeviceModel(thermo);
+            addDeviceModel(new SmartDeviceModel("Camera", CameraDevice.deviceKind));
+            addDeviceModel(new SmartDeviceModel("Lamp", LampDevice.deviceKind));
             saveToFile();
         }
     }
@@ -144,27 +141,6 @@ public final class SmartHome {
         });
     }
     //endregion
-
-    private void removeStateMenu() {
-        if (states.isEmpty()) {
-            System.out.println("No saved states found.");
-        }
-        String[] menuOptions = new String[states.size()+1];
-        Runnable[] actions = new Runnable[states.size()];
-        menuOptions[0] = "Cancel";
-        for (int i = 0; i < states.size(); i++) {
-            State theState = states.get(i);
-            menuOptions[i+1] = theState.name;
-            actions[i] = () -> {
-                if (states.remove(theState)) {
-                    System.out.println("Device removed.");
-                } else {
-                    System.out.println("Failed to remove device");
-                }
-            };
-        }
-        MenuHelper.menuLoop("Select state to remove:", menuOptions, actions);
-    }
 
     //region Getters and Setters
     public ArrayList<SmartDeviceModel> getDeviceModels() {
@@ -184,34 +160,35 @@ public final class SmartHome {
 
     //endregion
 
+    //region Menus
+    private void removeStateMenu() {
+        if (states.isEmpty()) {
+            System.out.println("No saved states found.");
+        }
+        MenuHelper.listMenuLoop("Select state to remove:", "Cancel", "", states, this::removeState);
+    }
+
     private void addStateMenu() {
-        // input new state name
         SafeInput si = new SafeInput(new Scanner(System.in));
-        boolean noNameYet = true;
-        do {
-            String stateName = si.nextLine("Please enter the new state name (empty to cancel):");
-            if (stateName.isEmpty()) {
-                noNameYet = false;
-            } else if (states.stream().anyMatch(s -> s.name.equals(stateName))) {
-                System.out.println("This state already exists");
-            } else {
-                State newState = new State(stateName);
-                states.add(newState);
-                noNameYet = false;
-            }
-        } while (noNameYet);
-        // create the state if not exists
+        si.nameInputLoop("Please enter the new state name (empty to cancel):", "State added.", "Failed to add state", this::addState);
     }
 
     private void switchStateMenu() {
+        MenuHelper.listMenuLoop("Select the state by number:", "Cancel", "", states, State::apply);
         //
     }
 
     private void newDeviceModelMenu() {
         SafeInput si = new SafeInput(new Scanner(System.in));
+        si.nameInputLoop("Enter new device model name: ","Added device model.", "Failed to add new model.", modelName -> {
+            AtomicBoolean success = new AtomicBoolean(false);
+            MenuHelper.listMenuLoop("What kind of device is it:", "Cancel", "No known device kinds.", DeviceKind.AVAILABLE_KINDS, kind -> success.set(addDeviceModel(new SmartDeviceModel(modelName, kind))));
+            return success.get();
+        });
     }
 
     private void removeRoomMenu() {
+
     }
 
     private void addRoomMenu() {
@@ -219,24 +196,34 @@ public final class SmartHome {
         si.nameInputLoop("Give a name for the new room (empty to cancel):", "Room added.", "Failed to add room.", this::addRoom);
     }
 
+    void roomMenu() {
+        String[] roomList = new String[rooms.size() + 1];
+        roomList[0] = "Back";
+        for (int i=0; i < rooms.size(); i++) {
+            roomList[i+1] = rooms.get(i).getName();
+        }
+        int choice = MenuHelper.menu("Select room", roomList);
+        if (choice > 0) {
+            rooms.get(choice-1).menu();
+        }
+    }
+
+    //endregion
+
+    //region Actions
     boolean addRoom(String roomName) {
-        if (rooms.stream().anyMatch(r->r.getName().equals(roomName))) {
+        if (rooms.stream().anyMatch(r -> r.getName().equals(roomName))) {
             System.out.println("Room '" + roomName + "' already exists");
             return false;
         }
         return rooms.add(new Room(roomName));
     }
 
-    boolean removeRoom(String roomName) {
-        return false;
-    }
-
     boolean addDeviceModel(SmartDeviceModel deviceModel) {
         if (models.contains(deviceModel)) {
             return false;
         }
-        models.add(deviceModel);
-        return true;
+        return models.add(deviceModel);
     }
 
     void listAllDevices() {
@@ -260,6 +247,7 @@ public final class SmartHome {
 
     boolean addState(String stateName) {
         if (states.stream().anyMatch(s -> s.name.equals(stateName))) {
+            System.out.println("State " + stateName + " already exists.");
             return false;
         }
         State state = new State(stateName);
@@ -268,29 +256,9 @@ public final class SmartHome {
         return true;
     }
 
-    boolean switchState(State state) {
-        state.apply();
-        return true;
+    void removeState(State state) {
+        System.out.println(states.contains(state) && states.remove(state) ? "State removed." : "Failed to remove state.");
     }
 
-    boolean removeState(State state) {
-        if (states.contains(state)) {
-            states.remove(state);
-            return true;
-        }
-        return false;
-    }
-
-    void roomMenu() {
-        String[] roomList = new String[rooms.size() + 1];
-        roomList[0] = "Back";
-        for (int i=0; i < rooms.size(); i++) {
-            roomList[i+1] = rooms.get(i).getName();
-        }
-        int choice = MenuHelper.menu("Select room", roomList);
-        if (choice > 0) {
-            rooms.get(choice-1).menu();
-        }
-    }
-
+    //endregion
 }

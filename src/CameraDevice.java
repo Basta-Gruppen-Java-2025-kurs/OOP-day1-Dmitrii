@@ -1,5 +1,5 @@
 public class CameraDevice extends SmartDevice {
-    public final static String deviceKind = "Camera";
+    public final static DeviceKind deviceKind = new DeviceKind("Camera", CameraDevice.class);
     public CameraDevice(SmartDeviceModel model) {
         super(model);
     }
@@ -18,4 +18,5 @@ public class CameraDevice extends SmartDevice {
     public void applyState(String state) {
 
     }
+
 }

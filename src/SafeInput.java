@@ -25,7 +25,7 @@ public class SafeInput {
         return scanner;
     }
 
-    public <T extends Comparable> Comparable getValue(String prompt, Supplier<T> getMethod) {
+    public <T extends Comparable<? extends Number>> T getValue(String prompt, Supplier<T> getMethod) {
         T result = null;
         do {
             try {
@@ -40,9 +40,9 @@ public class SafeInput {
         return result;
     }
 
-    public <T extends Comparable> Comparable getValueWithLimits(String prompt, Supplier<T> getMethod, String tryAgain, T min, T max) {
+    public <N extends Number, T extends Comparable<N>> T getValueWithLimits(String prompt, Supplier<T> getMethod, String tryAgain, N min, N max) {
         while(true) {
-            T result = (T) getValue(prompt, () -> scanner.nextInt());
+            T result = getValue(prompt, getMethod);
             if (result.compareTo(max) <= 0 && result.compareTo(min) >= 0)
                 return result;
             System.out.println(tryAgain);
@@ -50,23 +50,23 @@ public class SafeInput {
     }
 
     public int nextInt(String prompt) {
-        return (int) getValue(prompt, () -> scanner.nextInt());
+        return getValue(prompt, () -> scanner.nextInt());
     }
 
     public int nextInt(String prompt, String tryAgain, int min, int max) {
-        return (int) this.getValueWithLimits(prompt, () -> scanner.nextInt(), tryAgain, min, max);
+        return this.getValueWithLimits(prompt, () -> scanner.nextInt(), tryAgain, min, max);
     }
 
     public double nextDouble(String prompt) {
-        return (double) getValue(prompt, () -> scanner.nextDouble());
+        return getValue(prompt, () -> scanner.nextDouble());
     }
 
     public short nextShort(String prompt) {
-        return (short) getValue(prompt, () -> scanner.nextShort());
+        return getValue(prompt, () -> scanner.nextShort());
     }
 
     public long nextLong(String prompt) {
-        return (long) getValue(prompt, () -> scanner.nextLong());
+        return getValue(prompt, () -> scanner.nextLong());
     }
 
     public String nextLine(String prompt) {
@@ -74,15 +74,15 @@ public class SafeInput {
         return scanner.nextLine();
     }
 
-    public String nameInputLoop(String prompt, String success, String failure, Predicate<String> actionCallback) {
+    public void nameInputLoop(String prompt, String success, String failure, Predicate<String> actionCallback) {
         while(true) {
             String inputLine = nextLine(prompt);
             if (inputLine.isEmpty()) {
-                return inputLine;
+                return;
             }
             if(actionCallback.test(inputLine)) {
                 System.out.println(success);
-                return inputLine;
+                return;
             } else {
                 System.out.println(failure);
             }

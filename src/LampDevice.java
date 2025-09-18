@@ -1,5 +1,5 @@
 public class LampDevice extends SmartDevice {
-    public final static String deviceKind = "Lamp";
+    public final static DeviceKind deviceKind = new DeviceKind("Lamp", LampDevice.class);
     public LampDevice(SmartDeviceModel model) {
         super(model);
     }
