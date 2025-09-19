@@ -1,10 +1,12 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Room implements Named {
     private final String name;
     private final ArrayList<SmartDevice> devices = new ArrayList<>();
     private final String[] MENU_OPTIONS = {"Back", "List devices", "Add device", "Remove device", "Move device", "Device settings"};
+    private final String BACK = "Back", CANCEL = "Cancel", NO_DEVICES = "No devices in this room.";
 
     public void menu() {
         MenuHelper.menuLoop("Room '" + name + "'. Choose action by number:", MENU_OPTIONS,
@@ -13,54 +15,45 @@ public class Room implements Named {
     }
 
     private void deviceSettingsMenu() {
-        MenuHelper.listMenuLoop("Select device by number:", "Back", "No devices in this room.", devices, SmartDevice::menu, true);
+        MenuHelper.listMenuLoop("Select device by number:", BACK, NO_DEVICES, devices, SmartDevice::menu, true);
     }
 
     private void moveDeviceMenu() {
+        MenuHelper.listMenuLoop("Select device to move:", CANCEL, NO_DEVICES, devices, device -> {
+            MenuHelper.listMenuLoop("Select room to move device to:", CANCEL, "No rooms found.", Arrays.asList(SmartHome.getInstance().getRooms()), room -> {
+
+            }, true);
+        }, true);
     }
 
     private void removeDeviceMenu() {
-        //
+        MenuHelper.listMenuLoop("Select device to remove:", CANCEL, NO_DEVICES, devices, this::removeDevice, true);
     }
 
     private void addDeviceMenu() {
-        ArrayList<SmartDeviceModel> modelList = SmartHome.getInstance().getDeviceModels();
-        if (modelList.isEmpty()) {
-            System.out.println("No device models available.");
-            return;
-        }
-        String [] addMenuContent = new String[modelList.size() + 1];
-        addMenuContent[0] = "Cancel";
-        for (int i = 0; i < modelList.size(); i++) {
-            addMenuContent[i + 1] = modelList.get(i).name;
-        }
-
-        // select device model
-        int choice = MenuHelper.menu("Select device model: ", addMenuContent);
-        if (choice == 0) {
-            return;
-        }
-        // name the device
-        SafeInput si = new SafeInput(new Scanner(System.in));
-        while(true) {
-            String deviceName = si.nextLine("Please name the device (empty to cancel): ");
-            if (devices.stream().anyMatch(d -> d.getId().equals(deviceName))) {
-                System.out.println("Device with this name already exists. Try again.");
-            } else {
-                SmartDevice newDevice = SmartDevice.createNewDevice(deviceName, modelList.get(choice - 1));
+        MenuHelper.listMenuLoop("Select device model:", CANCEL, NO_DEVICES, SmartHome.getInstance().getDeviceModels(), model -> {
+            SafeInput si = new SafeInput(new Scanner(System.in));
+            si.nameInputLoop("Please name the device (empty to cancel): ", "New device placed.", "Device with this name already exists. Try again.", deviceName -> {
+                if (devices.stream().anyMatch(d -> d.getId().equals(deviceName))) {
+                    return false;
+                }
+                SmartDevice newDevice = SmartDevice.createNewDevice(deviceName, model);
                 if (newDevice != null) {
                     newDevice.placeInARoom(this);
-                    System.out.println("New device placed.");
+                    devices.add(newDevice);
+                    return true;
+                } else {
+                    System.out.println("Failed to create device");
+                    return true;
                 }
-                return;
-            }
-        }
+            });
+        }, true);
     }
 
     public void listDevices() {
         System.out.println("  Total devices: " + devices.size());
         for (SmartDevice device : devices) {
-            System.out.println("  - " + device.toString());
+            System.out.println("  - " + device);
         }
     }
 
@@ -80,11 +73,12 @@ public class Room implements Named {
         System.out.println(!devices.contains(device)&&devices.add(device) ? "Device added." : "This device already exists in this room.");
     }
 
-    public boolean removeDevice(SmartDevice device) {
+    public void removeDevice(SmartDevice device) {
         if (devices.contains(device)) {
-            return devices.remove(device);
+            System.out.println(devices.remove(device) ? "Device removed." : "Failed to remove device");
+        } else {
+            System.out.println("Device not found.");
         }
-        return false;
     }
 
 }
