@@ -12,7 +12,7 @@ public final class SmartHome {
     private final ArrayList<SmartDeviceModel> models = new ArrayList<>();
     private final ArrayList<State> states = new ArrayList<>();
 
-    private static final String[] MENU_OPTIONS = { "Exit", "Add room", "Remove Room", "Room Menu", "New device model", "List device models", "List all devices in the house", "Switch state", "Add state", "Remove state", "Save to file" };
+    private static final String[] MENU_OPTIONS = { " ⍇\tExit", "➕⛶\tAdd room", "❌⛶\tRemove Room", "☰⛶\tRoom Menu", "➕⚡\tNew device model", "☰⚡\tList device models", "☰⚙\tList all devices in the house", "☰⛿\tSwitch state", "➕⛿\tAdd state", "❌⛿\tRemove state", "\uD83D\uDCBE\tSave to file" };
     private static SmartHome instance = null;
     private SmartHome() {
     }
@@ -138,7 +138,7 @@ public final class SmartHome {
         MenuHelper.menuLoop("Choose an action:", MENU_OPTIONS, new Runnable[] {
             this::addRoomMenu, this::removeRoomMenu, this::roomMenu, this::newDeviceModelMenu, this::listAllDeviceModels,
             this::listAllDevices, this::switchStateMenu, this::addStateMenu, this::removeStateMenu, this::saveToFile
-        });
+        }, false);
     }
     //endregion
 
@@ -162,10 +162,7 @@ public final class SmartHome {
 
     //region Menus
     private void removeStateMenu() {
-        if (states.isEmpty()) {
-            System.out.println("No saved states found.");
-        }
-        MenuHelper.listMenuLoop("Select state to remove:", "Cancel", "", states, this::removeState);
+        MenuHelper.listMenuLoop("Select state to remove:", "Cancel", "No saved states found.", states, this::removeState, true);
     }
 
     private void addStateMenu() {
@@ -174,21 +171,20 @@ public final class SmartHome {
     }
 
     private void switchStateMenu() {
-        MenuHelper.listMenuLoop("Select the state by number:", "Cancel", "", states, State::apply);
-        //
+        MenuHelper.listMenuLoop("Select the state by number:", "Cancel", "No saved states found.", states, State::apply, true);
     }
 
     private void newDeviceModelMenu() {
         SafeInput si = new SafeInput(new Scanner(System.in));
         si.nameInputLoop("Enter new device model name: ","Added device model.", "Failed to add new model.", modelName -> {
             AtomicBoolean success = new AtomicBoolean(false);
-            MenuHelper.listMenuLoop("What kind of device is it:", "Cancel", "No known device kinds.", DeviceKind.AVAILABLE_KINDS, kind -> success.set(addDeviceModel(new SmartDeviceModel(modelName, kind))));
+            MenuHelper.listMenuLoop("What kind of device is it:", "Cancel", "No known device kinds.", DeviceKind.AVAILABLE_KINDS, kind -> success.set(addDeviceModel(new SmartDeviceModel(modelName, kind))), true);
             return success.get();
         });
     }
 
     private void removeRoomMenu() {
-
+        MenuHelper.listMenuLoop("Select the room to remove:", "Cancel", "No rooms found.", rooms, room -> System.out.println(rooms.remove(room) ? "Room removed." : "Failed to remove room."), true);
     }
 
     private void addRoomMenu() {

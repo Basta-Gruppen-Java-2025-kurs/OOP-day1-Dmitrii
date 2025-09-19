@@ -1,0 +1,94 @@
+@startuml
+actor User
+participant App
+title Smart Home simulation
+
+
+create participant SmartHome as SH
+entity MenuHelper as MH
+App --> SH: initial config
+hnote right: ""SmartHome.getInstance().initialConfig()""\n(**SmartHome** is a singleton)
+opt No SaveFile.txt exists
+== Initializing with defaults ==
+
+loop Each default device model
+activate SH
+create participant SmartDeviceModel as SDM
+SH --> SDM : addDeviceModel
+end loop
+
+loop Each default room
+create participant Room as R
+SH --> R : addRoom
+
+
+loop Each default device
+create participant SmartDevice as D
+R --> D: addDevice
+end loop
+
+end loop
+
+== Saving to file ==
+
+SH -> SH: saveToFile
+activate SH #Gold
+create database SaveFile as F
+SH -> F: new PrintWriter()
+loop Each device model
+SH -> F: Save device model
+end
+loop Each room
+SH -> F: Save room
+loop Each device in each room
+SH -> F: Save device
+end
+end
+create entity State
+SH --> State: new State("current")
+SH -> F: Save current state
+deactivate SH
+
+else SaveFile.txt exists
+
+== Loading from file ==
+SH -> SH: loadFromFile
+loop
+activate SH #Gold
+SH -> F: read next token
+SH <- F: next token
+opt next token is a Device Model
+SH -> F:
+else next token is a Room
+else next token is a Device
+else next token is a State
+end opt
+end loop
+deactivate SH
+end opt
+deactivate SH
+
+== Main menu loop ==
+
+App -> SH ++: menu
+hnote right: SmartHome.getInstance().menu
+SH -> MH --++: show main menu
+MH -> User: Select an option
+opt Add room
+User -> MH: Add room
+MH --> SH ++: new room menu
+SH ->o R --: addRoom
+note right: New room created
+else Remove room
+User -> MH: Remove room
+MH --> MH ++: remove room menu
+MH --> SH --++: room selected
+SH -> R !!: deleteRoom
+deactivate SH
+note right: Room deleted
+else Room menu
+else List device models
+else List all devices
+
+end
+@enduml

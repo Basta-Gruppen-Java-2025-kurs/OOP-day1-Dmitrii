@@ -7,6 +7,4 @@ public class Main {
         SmartHome.getInstance().initialConfig();
         SmartHome.getInstance().menu();
     }
-
-
 }

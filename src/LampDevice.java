@@ -1,7 +1,7 @@
 public class LampDevice extends SmartDevice {
     public final static DeviceKind deviceKind = new DeviceKind("Lamp", LampDevice.class);
-    public LampDevice(SmartDeviceModel model) {
-        super(model);
+    public LampDevice(SmartDeviceModel model, String id) {
+        super(model, id);
     }
 
     @Override

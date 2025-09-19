@@ -15,12 +15,22 @@ public class DeviceKind implements Named {
         return AVAILABLE_KINDS.stream().filter(k -> k.getName().equals(kindName)).findFirst().orElse(null);
     }
 
-    Class<? extends SmartDevice> produceDevice() {
-        return deviceClass;
+    SmartDevice produceDevice(SmartDeviceModel model, String id) {
+        try {
+            return deviceClass.getConstructor(SmartDeviceModel.class, String.class).newInstance(model, id);
+        } catch (Exception e) {
+            System.out.println("Error producing device: " + e);
+            return null;
+        }
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }

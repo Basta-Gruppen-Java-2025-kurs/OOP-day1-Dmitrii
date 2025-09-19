@@ -8,15 +8,12 @@ public class Room implements Named {
 
     public void menu() {
         MenuHelper.menuLoop("Room '" + name + "'. Choose action by number:", MENU_OPTIONS,
-                new Runnable[] {this::listDevices, this::addDeviceMenu, this::removeDeviceMenu, this::moveDeviceMenu, this::deviceSettingsMenu});
+                new Runnable[] {this::listDevices, this::addDeviceMenu, this::removeDeviceMenu,
+                                this::moveDeviceMenu, this::deviceSettingsMenu}, false);
     }
 
     private void deviceSettingsMenu() {
-        if (devices.isEmpty()) {
-            System.out.println("No devices in this room");
-            return;
-        }
-        MenuHelper.listMenuLoop("Select device by number:", "Back", "", devices, SmartDevice::menu);
+        MenuHelper.listMenuLoop("Select device by number:", "Back", "No devices in this room.", devices, SmartDevice::menu, true);
     }
 
     private void moveDeviceMenu() {

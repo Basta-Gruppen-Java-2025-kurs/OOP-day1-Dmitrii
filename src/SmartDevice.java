@@ -1,16 +1,17 @@
+import java.lang.reflect.Constructor;
+
 public abstract class SmartDevice implements Named {
     private final SmartDeviceModel model;
-    private String id;
+    protected final String id;
     private Room room = null;
     public String getId() {
         return id;
     }
-    public void setId(String id) {
-        this.id = id;
-    }
     public SmartDeviceModel getModel() {
         return model;
     }
+
+    protected String[] DEFAULT_MENU = {"Status", "Turn on", "Turn off", "Power consumption", "Components"};
 
     @Override
     public String getName() {
@@ -30,8 +31,9 @@ public abstract class SmartDevice implements Named {
         return this.room;
     }
 
-    public SmartDevice(SmartDeviceModel model) {
+    public SmartDevice(SmartDeviceModel model, String id) {
         this.model = model;
+        this.id = id;
     }
 
     public abstract void menu();
@@ -43,14 +45,12 @@ public abstract class SmartDevice implements Named {
     public static SmartDevice createNewDevice(String deviceName, SmartDeviceModel model) {
         SmartDevice newDevice = null;
         try {
-            newDevice = model.kind.produceDevice().getConstructor(SmartDeviceModel.class).newInstance(model);
+            newDevice = model.kind.produceDevice(model, deviceName);
+            if (newDevice == null) {
+                System.out.println("Failed to create device. Check that device model is correct");
+            }
         } catch (Exception e) {
             System.out.println("Error creating device: " + e);
-        }
-        if (newDevice == null) {
-            System.out.println("Failed to create device. Check that device model is correct");
-        } else {
-            newDevice.setId(deviceName);
         }
         return newDevice;
     }

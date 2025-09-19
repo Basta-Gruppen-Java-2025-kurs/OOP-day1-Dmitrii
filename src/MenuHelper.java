@@ -14,17 +14,17 @@ public class MenuHelper {
         return si.nextInt(menuText.toString(), "No such option in the menu", 0, options.length-1);
     }
 
-    public static void menuLoop(String header, String[] options, Runnable[] choiceCallbacks) {
+    public static void menuLoop(String header, String[] options, Runnable[] choiceCallbacks, boolean singleShot) {
         int choice;
         do {
             choice = menu(header, options);
             if (choice > 0) {
                 choiceCallbacks[choice-1].run();
             }
-        } while(choice > 0);
+        } while(choice > 0 && !singleShot);
     }
 
-    public static <T extends Named> void listMenuLoop(String header, String exit, String emptyListMessage, List<T> list, Consumer<T> choiceCallback) {
+    public static <T extends Named> void listMenuLoop(String header, String exit, String emptyListMessage, List<T> list, Consumer<T> choiceCallback, boolean singleShot) {
         if (list.isEmpty()) {
             System.out.println(emptyListMessage);
             return;
@@ -37,7 +37,7 @@ public class MenuHelper {
             options[i+1] = item.getName();
             callbacks[i] = () -> choiceCallback.accept(item);
         }
-        menuLoop(header, options, callbacks);
+        menuLoop(header, options, callbacks, singleShot);
     }
 
 }
