@@ -162,7 +162,7 @@ public final class SmartHome {
 
     //region Menus
     private void removeStateMenu() {
-        MenuHelper.listMenuLoop("Select state to remove:", "Cancel", "No saved states found.", states, this::removeState, true);
+        MenuHelper.listMenuLoop("Select state to remove:", Main.CANCEL, "No saved states found.", states, this::removeState, true);
     }
 
     private void addStateMenu() {
@@ -171,20 +171,20 @@ public final class SmartHome {
     }
 
     private void switchStateMenu() {
-        MenuHelper.listMenuLoop("Select the state by number:", "Cancel", "No saved states found.", states, State::apply, true);
+        MenuHelper.listMenuLoop("Select the state by number:", Main.CANCEL, "No saved states found.", states, State::apply, true);
     }
 
     private void newDeviceModelMenu() {
         SafeInput si = new SafeInput(new Scanner(System.in));
-        si.nameInputLoop("Enter new device model name: ","Added device model.", "Failed to add new model.", modelName -> {
+        si.nameInputLoop("Enter new device model name (empty to cancel): ","Added device model.", "Failed to add new model.", modelName -> {
             AtomicBoolean success = new AtomicBoolean(false);
-            MenuHelper.listMenuLoop("What kind of device is it:", "Cancel", "No known device kinds.", DeviceKind.AVAILABLE_KINDS, kind -> success.set(addDeviceModel(new SmartDeviceModel(modelName, kind))), true);
+            MenuHelper.listMenuLoop("What kind of device is it:", Main.CANCEL, "No known device kinds.", DeviceKind.AVAILABLE_KINDS, kind -> success.set(addDeviceModel(new SmartDeviceModel(modelName, kind))), true);
             return success.get();
         });
     }
 
     private void removeRoomMenu() {
-        MenuHelper.listMenuLoop("Select the room to remove:", "Cancel", "No rooms found.", rooms, room -> System.out.println(rooms.remove(room) ? "Room removed." : "Failed to remove room."), true);
+        MenuHelper.listMenuLoop("Select the room to remove:", Main.CANCEL, "No rooms found.", rooms, room -> System.out.println(rooms.remove(room) ? "Room removed." : "Failed to remove room."), true);
     }
 
     private void addRoomMenu() {

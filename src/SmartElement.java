@@ -1,5 +1,9 @@
 public class SmartElement implements Named {
-    String name = "";
+    final String name;
+
+    SmartElement(String name) {
+        this.name = name;
+    }
 
     public String getName() {
         return name;
