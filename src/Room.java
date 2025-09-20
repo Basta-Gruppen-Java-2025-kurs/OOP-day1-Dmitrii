@@ -6,7 +6,7 @@ public class Room implements Named {
     private final String name;
     private final ArrayList<SmartDevice> devices = new ArrayList<>();
     private final String[] MENU_OPTIONS = {"Back", "List devices", "Add device", "Remove device", "Move device", "Device settings"};
-    private final String BACK = "Back", CANCEL = "Cancel", NO_DEVICES = "No devices in this room.";
+    private final String NO_DEVICES = "No devices in this room.";
 
     public void menu() {
         MenuHelper.menuLoop("Room '" + name + "'. Choose action by number:", MENU_OPTIONS,
@@ -15,23 +15,25 @@ public class Room implements Named {
     }
 
     private void deviceSettingsMenu() {
-        MenuHelper.listMenuLoop("Select device by number:", BACK, NO_DEVICES, devices, SmartDevice::menu, true);
+        MenuHelper.listMenuLoop("Select device by number:", Main.BACK, NO_DEVICES, devices, SmartDevice::menu, true);
     }
 
     private void moveDeviceMenu() {
-        MenuHelper.listMenuLoop("Select device to move:", CANCEL, NO_DEVICES, devices, device -> {
-            MenuHelper.listMenuLoop("Select room to move device to:", CANCEL, "No rooms found.", Arrays.asList(SmartHome.getInstance().getRooms()), room -> {
-
-            }, true);
-        }, true);
+        MenuHelper.listMenuLoop("Select device to move:", Main.CANCEL, NO_DEVICES, devices,
+                device -> MenuHelper.listMenuLoop("Select room to move device to:", Main.CANCEL, "No rooms found.", Arrays.asList(SmartHome.getInstance().getRooms()),
+                        room -> {
+                            device.placeInARoom(room);
+                            this.devices.remove(device);
+                            room.devices.add(device);
+        }, true), true);
     }
 
     private void removeDeviceMenu() {
-        MenuHelper.listMenuLoop("Select device to remove:", CANCEL, NO_DEVICES, devices, this::removeDevice, true);
+        MenuHelper.listMenuLoop("Select device to remove:", Main.CANCEL, NO_DEVICES, devices, this::removeDevice, true);
     }
 
     private void addDeviceMenu() {
-        MenuHelper.listMenuLoop("Select device model:", CANCEL, NO_DEVICES, SmartHome.getInstance().getDeviceModels(), model -> {
+        MenuHelper.listMenuLoop("Select device model:", Main.CANCEL, NO_DEVICES, SmartHome.getInstance().getDeviceModels(), model -> {
             SafeInput si = new SafeInput(new Scanner(System.in));
             si.nameInputLoop("Please name the device (empty to cancel): ", "New device placed.", "Device with this name already exists. Try again.", deviceName -> {
                 if (devices.stream().anyMatch(d -> d.getId().equals(deviceName))) {
